@@ -1,5 +1,6 @@
 import { Pokemon } from "@/src/pokemons";
 import { Metadata } from "next";
+import { cacheTag } from "next/cache";
 import Image from 'next/image';
 import { notFound } from "next/navigation";
 
@@ -7,10 +8,10 @@ interface Props {
   params: { id: string }
 }
 
-export async function generateStaticParams(){
-  const static151Pokemons = Array.from({ length: 151 }).map( (v, i) => `${i + 1}` );
+export async function generateStaticParams() {
+  const static151Pokemons = Array.from({ length: 151 }).map((v, i) => `${i + 1}`);
 
-  return static151Pokemons.map( id => ({
+  return static151Pokemons.map(id => ({
     id: id
   }));
 
@@ -34,11 +35,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 const getPokemon = async (id: string): Promise<Pokemon> => {
+  'use cache'
+  cacheTag('pokemon', id);
   try {
     const pokemon = await fetch(`https://pokeapi.co/api/v2/pokemon/${id}`,
       {
-        next:{
-          revalidate:60 * 60 * 30 * 6
+        next: {
+          revalidate: 60 * 60 * 30 * 6
         }
         // cache: 'force-cache'
       }).then(resp => resp.json());
